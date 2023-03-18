@@ -5,6 +5,7 @@ import android.content.Intent
 import android.media.MediaPlayer
 import android.os.Binder
 import android.os.IBinder
+import com.study.localmusic.LOADSONG
 import com.study.localmusic.data.SourceManager
 import com.study.localmusic.model.Song
 import kotlinx.coroutines.CoroutineScope
@@ -44,7 +45,16 @@ class MusicService : Service(), MediaPlayer.OnCompletionListener {
 
     }
 
-    fun loadSongs() {
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        intent?.action?.let {
+            if (it == LOADSONG) {
+                loadSongs()
+            }
+        }
+        return super.onStartCommand(intent, flags, startId)
+    }
+
+    private fun loadSongs() {
         coroutineScope.launch {
             sourceManager.getSongs().also {
                 songs = it

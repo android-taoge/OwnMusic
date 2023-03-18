@@ -9,3 +9,4 @@ package com.study.localmusic
 const val PREVIOUS = "Previous"
 const val PLAY = "Play"
 const val NEXT = "Next"
+const val LOADSONG="LoadSong"

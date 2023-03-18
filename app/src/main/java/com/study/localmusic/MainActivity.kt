@@ -63,12 +63,13 @@ class MainActivity : ComponentActivity() {
                         musicVm.fetchMusicData()
                     },
                     serviceLoadData = {
-                        mService?.loadSongs()
+                        startService(Intent(this, MusicService::class.java).apply {
+                            action = LOADSONG
+                        })
                     },
                     updateCheckAction = { clickPos ->
                         musicVm.dispatchPlayState(true)
-                        updateCurrentPlay(clickPos, PLAY)
-                        //updateDuration()
+                        updateCurrentPlay(clickPos, true)
                     },
                     bottomPlayAction = {
                         val nowIndex = when (mService?.audioPlayer?.isPlaying) {
@@ -87,8 +88,8 @@ class MainActivity : ComponentActivity() {
                                 selectIndex
                             }
                         }
-                        showNotification(musics[nowIndex], PLAY)
                         musicVm.dispatchPlayState(!isPlay)
+                        showNotification(musics[nowIndex], !isPlay)
                     },
                     gotoSettingAction = {
                         go2AppSettings(this)
@@ -174,7 +175,7 @@ class MainActivity : ComponentActivity() {
         remoteView.setOnClickPendingIntent(viewId, prevPendIntent)
     }
 
-    private fun showNotification(song: Song, action: String) {
+    private fun showNotification(song: Song, isPlay: Boolean) {
         remoteView.setTextViewText(R.id.tv_title, song.song)
         remoteView.setTextViewText(R.id.tv_singer, song.singer)
         remoteView.setImageViewBitmap(
@@ -183,7 +184,7 @@ class MainActivity : ComponentActivity() {
         )
         remoteView.setImageViewResource(
             R.id.iv_play,
-            if (mService?.audioPlayer?.isPlaying == true) R.drawable.pause_black else R.drawable.play_black
+            if (isPlay) R.drawable.pause_black else R.drawable.play_black
         )
 
         NotificationManagerCompat.from(this).notify(notificationId, notification)
@@ -201,37 +202,40 @@ class MainActivity : ComponentActivity() {
 
     inner class NotificationReceiver : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
-            val action = intent?.action ?: PLAY
+            val isPlay: Boolean
             val nowIndex = when (intent?.action) {
                 PREVIOUS -> {
+                    isPlay = true
                     if (mService?.playPosition!! <= 0) 0 else mService?.playPosition!! - 1
                 }
 
                 NEXT -> {
+                    isPlay = true
                     val songSize = mService?.songs?.size ?: 0
                     if (mService?.playPosition!! >= songSize - 1) 0 else mService?.playPosition!! + 1
                 }
                 else -> {
                     if (mService?.audioPlayer?.isPlaying == true) {
+                        isPlay = false
                         mService?.pause()
-                        musicVm.dispatchPlayState(false)
                     } else {
+                        isPlay = true
                         mService?.play()
-                        musicVm.dispatchPlayState(true)
                     }
                     mService?.playPosition!!
                 }
             }
-            updateCurrentPlay(nowIndex, action)
+            updateCurrentPlay(nowIndex, isPlay)
 
         }
     }
 
-    private fun updateCurrentPlay(nowIndex: Int, action: String) {
+    private fun updateCurrentPlay(nowIndex: Int, isPlay: Boolean) {
+        musicVm.dispatchPlayState(isPlay)
         musicVm.updateSelectIndex(SongIndex(index = nowIndex))
         mService?.playByPos(nowIndex)
         musicVm.querySelectIndex()
-        showNotification(mService?.songs!![nowIndex], action)
+        showNotification(mService?.songs!![nowIndex], isPlay)
     }
 
 
