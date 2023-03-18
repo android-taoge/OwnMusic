@@ -7,7 +7,6 @@ import android.os.Binder
 import android.os.IBinder
 import com.study.localmusic.data.SourceManager
 import com.study.localmusic.model.Song
-import com.study.localmusic.model.SongIndex
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
@@ -42,7 +41,7 @@ class MusicService : Service(), MediaPlayer.OnCompletionListener {
         audioPlayer = MediaPlayer().apply {
             setOnCompletionListener(this@MusicService)
         }
-        loadSongs()
+
     }
 
     fun loadSongs() {
@@ -103,7 +102,7 @@ class MusicService : Service(), MediaPlayer.OnCompletionListener {
         nextPlay()
     }
 
-    fun updatePlayIndex(index: Int) {
+    private fun updatePlayIndex(index: Int) {
         coroutineScope.launch {
             onIndexChange?.invoke(index)
         }
