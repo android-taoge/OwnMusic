@@ -113,9 +113,7 @@ class MusicService : Service(), MediaPlayer.OnCompletionListener {
     }
 
     private fun updatePlayIndex(index: Int) {
-        coroutineScope.launch {
-            onIndexChange?.invoke(index)
-        }
+        onIndexChange?.invoke(index)
     }
 
 

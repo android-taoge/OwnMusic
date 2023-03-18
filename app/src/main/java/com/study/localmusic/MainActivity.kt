@@ -5,13 +5,13 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.*
-import android.graphics.BitmapFactory
 import android.os.*
 import android.widget.RemoteViews
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
-import androidx.compose.runtime.*
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -27,12 +27,13 @@ import com.study.localmusic.viewmodel.MusicDataVm
 
 class MainActivity : ComponentActivity() {
 
-    private lateinit var notification: Notification
-    private lateinit var remoteView: RemoteViews
+
     private val notificationId = 100
     private val musicVm by viewModels<MusicDataVm>()
     private var mService: MusicService? = null
     private val connection = ServiceConnect()
+    private lateinit var notification: Notification
+    private lateinit var remoteView: RemoteViews
     private lateinit var notificationReceiver: NotificationReceiver
 
 
@@ -88,8 +89,8 @@ class MainActivity : ComponentActivity() {
                                 selectIndex
                             }
                         }
-                        musicVm.dispatchPlayState(!isPlay)
-                        showNotification(musics[nowIndex], !isPlay)
+                        updateCurrentPlay(nowIndex, !isPlay)
+
                     },
                     gotoSettingAction = {
                         go2AppSettings(this)
@@ -103,8 +104,7 @@ class MainActivity : ComponentActivity() {
         override fun onServiceConnected(name: ComponentName?, binder: IBinder?) {
             mService = (binder as MusicService.MusicBinder).service()
             mService?.onIndexChange = {
-                musicVm.updateSelectIndex(SongIndex(index = it))
-                musicVm.querySelectIndex()
+                updateCurrentPlay(it, true)
             }
 
         }
